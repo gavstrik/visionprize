@@ -48,11 +48,21 @@ def make_dataframe(q):
 def KL(P, Q):
     """ Epsilon is used here to avoid conditional code for
     checking that neither P nor Q is equal to 0. """
-    epsilon = 0.00001
+    epsilon = 0.0001
 
     _P = P + epsilon
     _Q = Q + epsilon
 
+    return np.sum(_P * np.log(_P/_Q))
+
+# alternative function for calculating the Kullback-leiber Divergence
+# where all conditions of P or Q = 0 are thrown out.
+# doesn't work right now.
+def KL_alt(P, Q):
+
+    _P = np.array([x for x in P if x != 0])
+    _Q = np.array([x for x in Q if x != 0])
+    print(_P,_Q)
     return np.sum(_P * np.log(_P/_Q))
 
 # function for counting metaknowledge types
@@ -131,7 +141,7 @@ for key, qanda in dict_data_files.items():
 
         # calculate the whole Kullback-Leiber Divergence for each respondent
         kl_scores = [KL(x_bar, prediction) for prediction in y]
-        # print('\nkl scores:\n', np.around(np.array(kl_scores), 2))
+        print('\nkl scores:\n', np.around(np.array(kl_scores), 2))
 
         # calculate the most popular answer
         mpa = x_bar.tolist().index(max(x_bar))

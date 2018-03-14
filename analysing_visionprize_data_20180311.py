@@ -16,17 +16,18 @@ the results.
 # make a dictionary of data files in the format
 # {filename: [(question number, answer number)]}
 dict_data_files = {
-    'VisionPrize_Round1Clean.csv': [(1,4), (2,7), (3,6), (4,5), (5,5), (6,5), (7,6), (8,6), (9,3), (10,7)], \
-    'VisionPrizeRound1A_Clean.csv': [(1,5)], \
-    'VisionPrize_Round2Clean.csv': [(1,4), (2,4), (3,4), (4,4), (5,5), (6,5), (7,5), (8,5), (9,5), (10,4)], \
-    'VisionPrize_RoundQ2-2014Clean.csv': [(1,5), (2,4), (3,8), (4,5), (5,5)], \
-    'VisionPrize_RoundQ3-2013Clean.csv': [(1,4), (2,10), (3,5), (4,7), (5,5)], \
-    'VisionPrize_RoundQ4-2013Clean.csv': [(1,5), (2,2), (3,5), (4,5), (5,5), (6,10)], \
-    'VisionPrize_RoundQ4-2014Clean.csv': [(1,5), (2,5), (3,5), (4,5), (5,5), (6,5)]
+    'VisionPrize_Round1Clean.csv': [(1, 4), (2, 7), (3, 6), (4, 5), (5, 5), (6, 5), (7, 6), (8, 6), (9, 3), (10, 7)],
+    'VisionPrizeRound1A_Clean.csv': [(1, 5)],
+    'VisionPrize_Round2Clean.csv': [(1, 4), (2, 4), (3, 4), (4, 4), (5, 5), (6, 5), (7, 5), (8, 5), (9, 5), (10, 4)],
+    'VisionPrize_RoundQ2-2014Clean.csv': [(1, 5), (2, 4), (3, 8), (4, 5), (5, 5)],
+    'VisionPrize_RoundQ3-2013Clean.csv': [(1, 4), (2, 10), (3, 5), (4, 7), (5, 5)],
+    'VisionPrize_RoundQ4-2013Clean.csv': [(1, 5), (2, 2), (3, 5), (4, 5), (5, 5), (6, 10)],
+    'VisionPrize_RoundQ4-2014Clean.csv': [(1, 5), (2, 5), (3, 5), (4, 5), (5, 5), (6, 5)]
 }
 
 # make list of metaknowledge types
 types = ['tc', 'fc', 'td', 'fd', 'fa']
+
 
 # function for making the propper dataframe
 def make_dataframe(q):
@@ -34,15 +35,17 @@ def make_dataframe(q):
     df = pd.DataFrame(data_file)
     df1 = pd.DataFrame()
 
-    kwargs = {'Q' + str(q[0]) : df['Q' + str(q[0])].values}
+    kwargs = {'Q' + str(q[0]): df['Q' + str(q[0])].values}
     df1 = df1.assign(**kwargs)
     for answer in range(1, q[1] + 1):
-        kwargs = {str(answer) : df['Q' + str(q[0]) + 'distribution_guess' + str(answer)].values}
+        kwargs = {str(answer): df['Q' + str(q[0]) +
+                                  'distribution_guess' + str(answer)].values}
         df1 = df1.assign(**kwargs)
 
     # drop all rows with nan's
     df1 = df1.dropna()
     return df1
+
 
 # function for calculating the Kullback-leiber Divergence
 def KL(P, Q):
@@ -53,17 +56,18 @@ def KL(P, Q):
     _P = P + epsilon
     _Q = Q + epsilon
 
-    return np.sum(_P * np.log(_P/_Q))
+    return np.sum(_P * np.log(_P / _Q))
+
 
 # alternative function for calculating the Kullback-leiber Divergence
 # where all conditions of P or Q = 0 are thrown out.
 # doesn't work right now.
 def KL_alt(P, Q):
-
     _P = np.array([x for x in P if x != 0])
     _Q = np.array([x for x in Q if x != 0])
-    print(_P,_Q)
-    return np.sum(_P * np.log(_P/_Q))
+    print(_P, _Q)
+    return np.sum(_P * np.log(_P / _Q))
+
 
 # function for counting metaknowledge types
 def metaknowledge_type(x, y, mpa):
@@ -74,7 +78,8 @@ def metaknowledge_type(x, y, mpa):
 
     for person, answer in enumerate(y):
         personal_guess = int(x[person])
-        predicted_most_popular_choice = max(range(len(answer)), key=answer.__getitem__)
+        predicted_most_popular_choice = max(
+            range(len(answer)), key=answer.__getitem__)
         u[personal_guess][predicted_most_popular_choice] += 1
         if personal_guess == mpa and predicted_most_popular_choice == mpa:
             tc += 1
@@ -106,7 +111,8 @@ for key, qanda in dict_data_files.items():
 
     # go through each question
     for question in range(1, len(qanda) + 1):
-        print('\n file', key, 'Question', question, 'number of answers', qanda[question-1][1])
+        print('\n file', key, 'Question', question,
+              'number of answers', qanda[question - 1][1])
 
         # make dataframe with only the question in question
         df = make_dataframe(qanda[question - 1])
@@ -118,18 +124,19 @@ for key, qanda in dict_data_files.items():
         # print(x)
 
         # extract predictions y
-        k = qanda[question-1][1]
-        y = [df[str(a)].values/100 for a in range(1, k + 1)]
+        k = qanda[question - 1][1]
+        y = [df[str(a)].values / 100 for a in range(1, k + 1)]
         y = np.array(np.transpose(y))
         # print(y)
-        y_bar = sum(y)/len(y)
+        y_bar = sum(y) / len(y)
         # print('avg. y:', y_bar)
 
         # calculate x_bar
         unique, counts = np.unique(x, return_counts=True)
         # print(unique, counts)
-        x_count = [counts[unique.tolist().index(idx)] if idx in unique else 0 for idx in range(k)]
-        x_bar = np.array([answers/sum(counts) for answers in x_count])
+        x_count = [counts[unique.tolist().index(idx)]
+                   if idx in unique else 0 for idx in range(k)]
+        x_bar = np.array([answers / sum(counts) for answers in x_count])
         # print('x_bar =', x_bar)
 
         # calculating the KLD for the average y_bar instead of the individual y's
@@ -164,7 +171,8 @@ for key, qanda in dict_data_files.items():
         # print('\nkl3 scores:\n', np.around(np.array(kl3_score), 2))
 
         # find the metaknowledge types:
-        tc, fc, td, fd, fa, psychological_state, u = metaknowledge_type(x, y, mpa)
+        tc, fc, td, fd, fa, psychological_state, u = metaknowledge_type(
+            x, y, mpa)
         # print('\n# true consent:', tc, '\n# false consent:', fc, '\n# true dissent:', td, '\n# false dissent:', fd, '\n# false attr.:', fa, '\ntot=', tc+fc+td+fd+fa)
         # print('Pluralistic ignorance score 1/k * f/(f+t):', (fd+fc+fa)/(k*(fd+fc+fa+tc+td)))
         print(np.matrix(u))
@@ -172,16 +180,14 @@ for key, qanda in dict_data_files.items():
         # calculate the average score for each type:
         h = []
         for t in types:
-            kls = [kl_scores[person] for person, state in enumerate(psychological_state) if t == state]
+            kls = [kl_scores[person] for person, state in enumerate(
+                psychological_state) if t == state]
             if len(kls) > 0:
-                h.append(sum(kls)/len(kls))
+                h.append(sum(kls) / len(kls))
             else:
                 h.append(0)
         df_scores.loc[question] = h
         h[:] = []
-
-
-
 
     type_means = [df_scores[t].mean() for t in types]
     df_scores.loc[len(qanda) + 1] = type_means
